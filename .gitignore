@@ -1,0 +1,20 @@
+# Виртуальное окружение
+.venv/
+venv/
+
+# Кэш Python
+__pycache__/
+*.py[cod]
+
+# Настройки PyCharm
+.idea/
+
+# Кэш тестов
+.pytest_cache/
+
+# Отчёты о покрытии
+.coverage
+htmlcov/
+
+# Секретные данные
+.env
