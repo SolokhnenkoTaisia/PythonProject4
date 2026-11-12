@@ -1,6 +1,8 @@
+import inspect
+
 import pytest
 
-from src.products import Category, LawnGrass, Product, Smartphone
+from src.products import BaseProduct, Category, LawnGrass, Product, Smartphone
 
 
 @pytest.fixture
@@ -38,6 +40,14 @@ def lawn_grass():
 @pytest.fixture
 def category(product):
     return Category("Техника", "Электронные устройства", [product])
+
+
+def test_base_product_is_abstract():
+    assert inspect.isabstract(BaseProduct)
+
+
+def test_product_inherits_base_product(product):
+    assert isinstance(product, BaseProduct)
 
 
 def test_product_init(product):
@@ -83,11 +93,11 @@ def test_new_product_create():
         "quantity": 3,
     }
 
-    product = Product.new_product(data)
+    new_product = Product.new_product(data)
 
-    assert product.name == "Ноутбук"
-    assert product.price == 100000.0
-    assert product.quantity == 3
+    assert new_product.name == "Ноутбук"
+    assert new_product.price == 100000.0
+    assert new_product.quantity == 3
 
 
 def test_new_product_merge_higher_price(product):
@@ -148,6 +158,7 @@ def test_category_add_invalid_product(category):
 
 def test_smartphone_init(smartphone):
     assert isinstance(smartphone, Product)
+    assert isinstance(smartphone, BaseProduct)
     assert smartphone.name == "Samsung"
     assert smartphone.efficiency == 95.5
     assert smartphone.model == "S23 Ultra"
@@ -157,6 +168,7 @@ def test_smartphone_init(smartphone):
 
 def test_lawn_grass_init(lawn_grass):
     assert isinstance(lawn_grass, Product)
+    assert isinstance(lawn_grass, BaseProduct)
     assert lawn_grass.name == "Газонная трава"
     assert lawn_grass.country == "Россия"
     assert lawn_grass.germination_period == "7 дней"
@@ -193,3 +205,41 @@ def test_category_accepts_subclasses(category, smartphone, lawn_grass):
 def test_category_rejects_unrelated_object(category):
     with pytest.raises(TypeError):
         category.add_product(123)
+
+
+def test_mixin_prints_creation_info(capsys):
+    Product("Продукт1", "Описание продукта", 1200, 10)
+
+    output = capsys.readouterr().out
+
+    assert "Product" in output
+    assert "Продукт1" in output
+    assert "Описание продукта" in output
+    assert "1200" in output
+    assert "10" in output
+
+
+def test_mixin_prints_subclass_info(capsys):
+    Smartphone(
+        "Samsung",
+        "Описание",
+        80000.0,
+        3,
+        95.5,
+        "S23 Ultra",
+        256,
+        "Серый",
+    )
+
+    output = capsys.readouterr().out
+
+    assert "Smartphone" in output
+    assert "95.5" in output
+    assert "S23 Ultra" in output
+    assert "256" in output
+    assert "Серый" in output
+
+
+def test_product_rejects_negative_quantity():
+    with pytest.raises(ValueError):
+        Product("Телефон", "Описание", 10000.0, -1)
