@@ -1,5 +1,16 @@
-class Product:
-    """Класс для представления товара."""
+from abc import ABC, abstractmethod
+
+
+class ProductCreationMixin:
+    """Миксин для вывода информации о создании объекта."""
+
+    def __init__(self, *args: object, **kwargs: object) -> None:
+        print(f"Создан объект {self.__class__.__name__} " f"с параметрами: {args}, {kwargs}")
+        super().__init__(*args, **kwargs)
+
+
+class BaseProduct(ABC):
+    """Абстрактный базовый класс для товаров."""
 
     def __init__(
         self,
@@ -7,11 +18,19 @@ class Product:
         description: str,
         price: float,
         quantity: int,
+        **extra_attributes: object,
     ) -> None:
         self.name = name
         self.description = description
         self.__price = price
+
+        if quantity < 0:
+            raise ValueError("Количество товара не может быть отрицательным")
+
         self.quantity = quantity
+
+        for attribute, value in extra_attributes.items():
+            setattr(self, attribute, value)
 
     @property
     def price(self) -> float:
@@ -25,6 +44,26 @@ class Product:
             self.__price = new_price
         else:
             print("Цена не должна быть нулевая или отрицательная")
+
+    @abstractmethod
+    def __str__(self) -> str:
+        """Возвращает строковое представление товара."""
+        pass
+
+
+class Product(ProductCreationMixin, BaseProduct):
+    """Класс для представления товара."""
+
+    def __str__(self) -> str:
+        """Возвращает строковое представление товара."""
+        return f"{self.name}, {self.price} руб. " f"Остаток: {self.quantity} шт."
+
+    def __add__(self, other: "Product") -> float:
+        """Складывает стоимость товаров одного типа."""
+        if type(self) is not type(other):
+            raise TypeError("Можно складывать только товары одного типа")
+
+        return self.price * self.quantity + other.price * other.quantity
 
     @classmethod
     def new_product(
@@ -55,20 +94,14 @@ class Product:
             quantity=quantity,
         )
 
-    def __str__(self) -> str:
-        """Возвращает строковое представление товара."""
-        return f"{self.name}, {self.price} руб. " f"Остаток: {self.quantity} шт."
-
-    def __add__(self, other: "Product") -> float:
-        """Складывает стоимость товаров одного типа."""
-        if type(self) is not type(other):
-            raise TypeError("Можно складывать только товары одного типа")
-
-        return self.price * self.quantity + other.price * other.quantity
-
 
 class Smartphone(Product):
     """Класс для представления смартфона."""
+
+    efficiency: float
+    model: str
+    memory: int
+    color: str
 
     def __init__(
         self,
@@ -81,15 +114,24 @@ class Smartphone(Product):
         memory: int,
         color: str,
     ) -> None:
-        super().__init__(name, description, price, quantity)
-        self.efficiency = efficiency
-        self.model = model
-        self.memory = memory
-        self.color = color
+        super().__init__(
+            name,
+            description,
+            price,
+            quantity,
+            efficiency=efficiency,
+            model=model,
+            memory=memory,
+            color=color,
+        )
 
 
 class LawnGrass(Product):
     """Класс для представления газонной травы."""
+
+    country: str
+    germination_period: str
+    color: str
 
     def __init__(
         self,
@@ -101,10 +143,15 @@ class LawnGrass(Product):
         germination_period: str,
         color: str,
     ) -> None:
-        super().__init__(name, description, price, quantity)
-        self.country = country
-        self.germination_period = germination_period
-        self.color = color
+        super().__init__(
+            name,
+            description,
+            price,
+            quantity,
+            country=country,
+            germination_period=germination_period,
+            color=color,
+        )
 
 
 class Category:
