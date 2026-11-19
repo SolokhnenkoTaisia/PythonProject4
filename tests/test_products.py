@@ -141,7 +141,7 @@ def test_category_str(category):
 
 
 def test_category_products(category):
-    assert category.products == ("Телефон, 10000.0 руб. Остаток: 5 шт.\n")
+    assert category.products == "Телефон, 10000.0 руб. Остаток: 5 шт.\n"
 
 
 def test_category_add_product(category):
@@ -243,3 +243,32 @@ def test_mixin_prints_subclass_info(capsys):
 def test_product_rejects_negative_quantity():
     with pytest.raises(ValueError):
         Product("Телефон", "Описание", 10000.0, -1)
+
+
+def test_product_rejects_zero_quantity():
+    with pytest.raises(
+        ValueError,
+        match="Товар с нулевым количеством не может быть добавлен",
+    ):
+        Product("Бракованный товар", "Неверное количество", 1000.0, 0)
+
+
+def test_category_middle_price(category):
+    second_product = Product("Планшет", "Описание", 20000.0, 2)
+    category.add_product(second_product)
+
+    assert category.middle_price() == 15000.0
+
+
+def test_category_middle_price_ignores_quantity():
+    product1 = Product("Товар 1", "Описание", 100.0, 100)
+    product2 = Product("Товар 2", "Описание", 300.0, 1)
+    category = Category("Тест", "Тестовая категория", [product1, product2])
+
+    assert category.middle_price() == 200.0
+
+
+def test_empty_category_middle_price():
+    category = Category("Пустая категория", "Нет товаров", [])
+
+    assert category.middle_price() == 0

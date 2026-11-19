@@ -24,6 +24,8 @@ class BaseProduct(ABC):
         self.description = description
         self.__price = price
 
+        if quantity == 0:
+            raise ValueError("Товар с нулевым количеством не может быть добавлен")
         if quantity < 0:
             raise ValueError("Количество товара не может быть отрицательным")
 
@@ -56,7 +58,7 @@ class Product(ProductCreationMixin, BaseProduct):
 
     def __str__(self) -> str:
         """Возвращает строковое представление товара."""
-        return f"{self.name}, {self.price} руб. " f"Остаток: {self.quantity} шт."
+        return f"{self.name}, {self.price} руб. Остаток: {self.quantity} шт."
 
     def __add__(self, other: "Product") -> float:
         """Складывает стоимость товаров одного типа."""
@@ -185,6 +187,14 @@ class Category:
     def products(self) -> str:
         """Возвращает строковое представление товаров категории."""
         return "".join(str(product) + "\n" for product in self.__products)
+
+    def middle_price(self) -> float:
+        """Возвращает среднюю цену товаров категории."""
+        try:
+            total_price = sum(product.price for product in self.__products)
+            return total_price / len(self.__products)
+        except ZeroDivisionError:
+            return 0
 
     def __str__(self) -> str:
         """Возвращает строковое представление категории."""
